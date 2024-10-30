@@ -92,7 +92,7 @@ class plgCronGroups extends \Hubzero\Plugin\Plugin
 			->whereEquals('scope', 'group')
 			->rows();
 
-		include_once dirname(dirname(__DIR__)) . DS . 'groups' . DS . 'announcements' . DS . 'announcements.php';
+		include_once Plugin::path('groups', 'announcements') . DS . 'announcements.php';
 
 		// Loop through each announcement
 		foreach ($announcements as $announcement)
@@ -103,12 +103,11 @@ class plgCronGroups extends \Hubzero\Plugin\Plugin
 				// get all group members
 				$group = \Hubzero\User\Group::getInstance($announcement->get('scope_id'));
 
-				if (plgGroupsAnnouncements::send($announcement, $group))
-				{
-					// mark as sent
-					$announcement->set('sent', 1);
-					$announcement->save();
-				}
+				// mark as sent (before sending to prevent multiple sends)
+				$announcement->set('sent', 1);
+				$announcement->save();
+
+				plgGroupsAnnouncements::send($announcement, $group);
 			}
 		}
 
